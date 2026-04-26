@@ -2,7 +2,9 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/nicopiov/zerapi/internal/store"
@@ -55,6 +57,7 @@ func (h *Handler) handleCollection(w http.ResponseWriter, r *http.Request, resou
 			writeError(w, http.StatusNotFound, "resource not found")
 			return
 		}
+		records = applyFilters(records, r.URL.Query())
 		writeJSON(w, http.StatusOK, records)
 
 	case http.MethodPost:
@@ -176,4 +179,41 @@ func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{
 		"error": message,
 	})
+}
+
+func applyFilters(records []map[string]any, query url.Values) []map[string]any {
+	filtered := make([]map[string]any, 0, len(records))
+
+	for _, record := range records {
+		if matchesFilters(record, query) {
+			filtered = append(filtered, record)
+		}
+	}
+	return filtered
+}
+
+func matchesFilters(record map[string]any, query url.Values) bool {
+	for key, values := range query {
+		if isReservedQueryParam(key) {
+			continue
+		}
+
+		if len(values) == 0 {
+			continue
+		}
+
+		if fmt.Sprint(record[key]) != values[0] {
+			return false
+		}
+	}
+	return true
+}
+
+func isReservedQueryParam(key string) bool {
+	switch key {
+	case "_page", "_limit", "_sort":
+		return true
+	default:
+		return false
+	}
 }

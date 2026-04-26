@@ -197,3 +197,62 @@ func TestReadonlyBlocksReplace(t *testing.T) {
 		t.Fatalf("expected status 403, got %d", response.Code)
 	}
 }
+
+func TestFilterResourceByField(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name=Ada", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
+
+func TestFilterResourceNoMatches(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name=Missing", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 0 {
+		t.Fatalf("expected 0 records, got %d", len(body))
+	}
+}
+
+func TestFilterResourceByMultipleFields(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?id=1&name=Ada", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
