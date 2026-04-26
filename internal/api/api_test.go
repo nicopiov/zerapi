@@ -21,8 +21,8 @@ func newTestHandlerWithOptions(options Options) http.Handler {
 		{
 			Name: "users",
 			Records: []map[string]any{
-				{"id": 1, "name": "Ada"},
-				{"id": 2, "name": "Grace"},
+				{"id": 1, "name": "Ada", "age": 36},
+				{"id": 2, "name": "Grace", "age": 85},
 			},
 		},
 	})
@@ -366,5 +366,68 @@ func TestTotalCountUsesFilteredCount(t *testing.T) {
 
 	if response.Header().Get("X-Total-Count") != "1" {
 		t.Fatalf("expected X-Total-Count 1, got %q", response.Header().Get("X-Total-Count"))
+	}
+}
+
+func TestFilterResourceLike(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name_like=ad", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
+
+func TestFilterResourceGreaterThanOrEqual(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?age_gte=80", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Grace" {
+		t.Fatalf("expected Grace, got %v", body[0]["name"])
+	}
+}
+
+func TestFilterResourceLessThanOrEqual(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?age_lte=36", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
 	}
 }

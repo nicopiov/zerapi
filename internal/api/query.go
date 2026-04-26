@@ -30,11 +30,80 @@ func matchesFilters(record map[string]any, query url.Values) bool {
 			continue
 		}
 
-		if fmt.Sprint(record[key]) != values[0] {
+		if !matchesFilter(record, key, values[0]) {
 			return false
 		}
+
 	}
 	return true
+}
+
+func matchesFilter(record map[string]any, key string, expected string) bool {
+	field, operator := splitFilterKey(key)
+	actual, ok := record[field]
+	if !ok {
+		return false
+	}
+
+	switch operator {
+	case "exact":
+		return fmt.Sprint(actual) == expected
+	case "like":
+		return strings.Contains(
+			strings.ToLower(fmt.Sprint(actual)),
+			strings.ToLower(expected),
+		)
+	case "gte":
+		return compareNumber(actual, expected, func(left float64, right float64) bool {
+			return left >= right
+		})
+	case "lte":
+		return compareNumber(actual, expected, func(left float64, right float64) bool {
+			return left <= right
+		})
+	default:
+		return false
+	}
+}
+
+func splitFilterKey(key string) (string, string) {
+	for _, suffix := range []string{"_like", "_gte", "_lte"} {
+		if strings.HasSuffix(key, suffix) {
+			return strings.TrimSuffix(key, suffix), strings.TrimPrefix(suffix, "_")
+		}
+	}
+
+	return key, "exact"
+}
+
+func compareNumber(actual any, expected string, compare func(float64, float64) bool) bool {
+	left, ok := numberValue(actual)
+	if !ok {
+		return false
+	}
+
+	right, err := strconv.ParseFloat(expected, 64)
+	if err != nil {
+		return false
+	}
+
+	return compare(left, right)
+}
+
+func numberValue(value any) (float64, bool) {
+	switch typed := value.(type) {
+	case int:
+		return float64(typed), true
+	case int64:
+		return float64(typed), true
+	case float64:
+		return typed, true
+	case string:
+		parsed, err := strconv.ParseFloat(typed, 64)
+		return parsed, err == nil
+	default:
+		return 0, false
+	}
 }
 
 func isReservedQueryParam(key string) bool {

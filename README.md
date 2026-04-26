@@ -169,6 +169,19 @@ curl --get "http://localhost:8080/users" \
   --data-urlencode "name=Ada Lovelace"
 ```
 
+Use `_like` for case-insensitive substring matching:
+
+```sh
+curl "http://localhost:8080/users?name_like=ada"
+```
+
+Use `_gte` and `_lte` for numeric range filters:
+
+```sh
+curl "http://localhost:8080/users?age_gte=18"
+curl "http://localhost:8080/users?age_lte=65"
+```
+
 ## Pagination
 
 Use `_limit` to cap collection results:
