@@ -1,0 +1,179 @@
+package api
+
+import (
+	"encoding/json"
+	"net/http"
+	"strings"
+
+	"github.com/nicopiov/zerapi/internal/store"
+)
+
+type Handler struct {
+	store    *store.Store
+	readonly bool
+}
+
+type Options struct {
+	Readonly bool
+}
+
+func NewHandler(store *store.Store, options Options) http.Handler {
+	return &Handler{store: store, readonly: options.Readonly}
+}
+
+func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	parts := pathParts(r.URL.Path)
+
+	if len(parts) == 0 {
+		writeJSON(w, http.StatusOK, map[string]string{
+			"name":   "zerapi",
+			"status": "running",
+		})
+		return
+	}
+
+	if len(parts) > 2 {
+		writeError(w, http.StatusNotFound, "not found")
+		return
+	}
+
+	resource := parts[0]
+
+	if len(parts) == 1 {
+		h.handleCollection(w, r, resource)
+		return
+	}
+
+	h.handleRecord(w, r, resource, parts[1])
+}
+
+func (h *Handler) handleCollection(w http.ResponseWriter, r *http.Request, resource string) {
+	switch r.Method {
+	case http.MethodGet:
+		records, ok := h.store.List(resource)
+		if !ok {
+			writeError(w, http.StatusNotFound, "resource not found")
+			return
+		}
+		writeJSON(w, http.StatusOK, records)
+
+	case http.MethodPost:
+		if h.readonly {
+			writeError(w, http.StatusForbidden, "readonly mode")
+			return
+		}
+
+		record, ok := readRecord(w, r)
+		if !ok {
+			return
+		}
+
+		created, ok := h.store.Create(resource, record)
+		if !ok {
+			writeError(w, http.StatusNotFound, "resource not found")
+			return
+		}
+		writeJSON(w, http.StatusCreated, created)
+
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func (h *Handler) handleRecord(w http.ResponseWriter, r *http.Request, resource string, id string) {
+	switch r.Method {
+	case http.MethodGet:
+		record, ok := h.store.Get(resource, id)
+		if !ok {
+			writeError(w, http.StatusNotFound, "record not found")
+			return
+		}
+		writeJSON(w, http.StatusOK, record)
+
+	case http.MethodPut:
+		if h.readonly {
+			writeError(w, http.StatusForbidden, "readonly mode")
+			return
+		}
+
+		record, ok := readRecord(w, r)
+		if !ok {
+			return
+		}
+
+		replaced, ok := h.store.Replace(resource, id, record)
+		if !ok {
+			writeError(w, http.StatusNotFound, "record not found")
+			return
+		}
+		writeJSON(w, http.StatusOK, replaced)
+
+	case http.MethodPatch:
+		if h.readonly {
+			writeError(w, http.StatusForbidden, "readonly mode")
+			return
+		}
+
+		patch, ok := readRecord(w, r)
+		if !ok {
+			return
+		}
+
+		patched, ok := h.store.Patch(resource, id, patch)
+		if !ok {
+			writeError(w, http.StatusNotFound, "record not found")
+			return
+		}
+		writeJSON(w, http.StatusOK, patched)
+
+	case http.MethodDelete:
+		if h.readonly {
+			writeError(w, http.StatusForbidden, "readonly mode")
+			return
+		}
+
+		if !h.store.Delete(resource, id) {
+			writeError(w, http.StatusNotFound, "record not found")
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
+
+	default:
+		writeError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func readRecord(w http.ResponseWriter, r *http.Request) (map[string]any, bool) {
+	var record map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&record); err != nil {
+		writeError(w, http.StatusBadRequest, "invalid json body")
+		return nil, false
+	}
+
+	if record == nil {
+		writeError(w, http.StatusBadRequest, "json body must be an object")
+		return nil, false
+	}
+	return record, true
+}
+
+func pathParts(path string) []string {
+	trimmed := strings.Trim(path, "/")
+	if trimmed == "" {
+		return nil
+	}
+
+	return strings.Split(trimmed, "/")
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	json.NewEncoder(w).Encode(value)
+}
+
+func writeError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, map[string]string{
+		"error": message,
+	})
+}

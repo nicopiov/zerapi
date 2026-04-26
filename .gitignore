@@ -1,0 +1,27 @@
+# Local project memory
+ROADMAP.md
+
+# Build artifacts
+bin/
+dist/
+build/
+*.exe
+*.dll
+*.so
+*.dylib
+zerapi
+
+# Go test and coverage output
+*.test
+coverage.out
+coverage.html
+
+# Local environment files
+.env
+.env.*
+
+# Editor and OS files
+.DS_Store
+.idea/
+.vscode/
+*.swp
