@@ -43,13 +43,20 @@ go install github.com/nicopiov/zerapi@latest
 Or install a specific version:
 
 ```sh
-go install github.com/nicopiov/zerapi@v0.1.0
+go install github.com/nicopiov/zerapi@v0.2.0
 ```
 
 Then verify the command is available:
 
 ```sh
 zerapi version
+```
+
+Version aliases are also available:
+
+```sh
+zerapi --version
+zerapi -v
 ```
 
 ## Usage
@@ -82,6 +89,12 @@ Reload the file when it changes:
 
 ```sh
 zerapi serve --watch examples/users.json
+```
+
+Show serve help:
+
+```sh
+zerapi serve --help
 ```
 
 ## REST Routes
