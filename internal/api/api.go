@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/nicopiov/zerapi/internal/store"
@@ -57,6 +58,8 @@ func (h *Handler) handleCollection(w http.ResponseWriter, r *http.Request, resou
 		}
 		records = applyFilters(records, r.URL.Query())
 		applySorting(records, r.URL.Query())
+
+		w.Header().Set("X-Total-Count", strconv.Itoa(len(records)))
 
 		records, ok = applyPagination(w, records, r.URL.Query())
 		if !ok {

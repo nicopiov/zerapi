@@ -344,3 +344,27 @@ func TestSortResourceDescending(t *testing.T) {
 		t.Fatalf("expected Grace first, got %v", body[0]["name"])
 	}
 }
+
+func TestListResourceIncludesTotalCount(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	if response.Header().Get("X-Total-Count") != "2" {
+		t.Fatalf("expected X-Total-Count 2, got %q", response.Header().Get("X-Total-Count"))
+	}
+}
+
+func TestTotalCountUsesFilteredCount(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name=Ada&_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	if response.Header().Get("X-Total-Count") != "1" {
+		t.Fatalf("expected X-Total-Count 1, got %q", response.Header().Get("X-Total-Count"))
+	}
+}

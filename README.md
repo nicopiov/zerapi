@@ -183,6 +183,12 @@ Use `_page` with `_limit` to page through results:
 curl "http://localhost:8080/users?_page=2&_limit=1"
 ```
 
+Collection responses include `X-Total-Count`, which reports the number of matching records before pagination:
+
+```sh
+curl -i "http://localhost:8080/users?_limit=1"
+```
+
 ## Sorting
 
 Use `_sort` to order collection results by a field:
