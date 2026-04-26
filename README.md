@@ -129,6 +129,27 @@ curl -X PATCH http://localhost:8080/users/1 \
 curl -X DELETE http://localhost:8080/users/1
 ```
 
+## Filtering
+
+Collection routes support exact-match query filters.
+
+```sh
+curl "http://localhost:8080/users?email=ada@example.com"
+```
+
+For values with spaces or other special characters, URL-encode the value:
+
+```sh
+curl "http://localhost:8080/users?name=Ada%20Lovelace"
+```
+
+Or let `curl` encode it:
+
+```sh
+curl --get "http://localhost:8080/users" \
+  --data-urlencode "name=Ada Lovelace"
+```
+
 ## Readonly Mode
 
 Readonly mode keeps loaded data stable by allowing reads and blocking writes.

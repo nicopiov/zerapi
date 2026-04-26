@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/nicopiov/zerapi/internal/store"
@@ -58,6 +59,12 @@ func (h *Handler) handleCollection(w http.ResponseWriter, r *http.Request, resou
 			return
 		}
 		records = applyFilters(records, r.URL.Query())
+
+		records, ok = applyPagination(w, records, r.URL.Query())
+		if !ok {
+			return
+		}
+
 		writeJSON(w, http.StatusOK, records)
 
 	case http.MethodPost:
@@ -216,4 +223,40 @@ func isReservedQueryParam(key string) bool {
 	default:
 		return false
 	}
+}
+
+func applyPagination(w http.ResponseWriter, records []map[string]any, query url.Values) ([]map[string]any, bool) {
+	limitValue := query.Get("_limit")
+	if limitValue == "" {
+		return records, true
+	}
+
+	limit, err := strconv.Atoi(limitValue)
+	if err != nil || limit < 1 {
+		writeError(w, http.StatusBadRequest, "_limit must be a positive integer")
+		return nil, false
+	}
+
+	page := 1
+	pageValue := query.Get("_page")
+	if pageValue != "" {
+		parsedPage, err := strconv.Atoi(pageValue)
+		if err != nil || parsedPage < 1 {
+			writeError(w, http.StatusBadRequest, "_page must be a positive integer")
+			return nil, false
+		}
+		page = parsedPage
+	}
+
+	start := (page - 1) * limit
+	if start >= len(records) {
+		return []map[string]any{}, true
+	}
+
+	end := start + limit
+	if end > len(records) {
+		end = len(records)
+	}
+
+	return records[start:end], true
 }

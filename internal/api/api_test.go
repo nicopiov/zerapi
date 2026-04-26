@@ -256,3 +256,57 @@ func TestFilterResourceByMultipleFields(t *testing.T) {
 		t.Fatalf("expected Ada, got %v", body[0]["name"])
 	}
 }
+
+func TestLimitResource(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+}
+
+func TestPageResource(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_page=2&_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Grace" {
+		t.Fatalf("expected Grace, got %v", body[0]["name"])
+	}
+}
+
+func TestInvalidLimitReturnsBadRequest(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_limit=abc", "")
+
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", response.Code)
+	}
+}
+
+func TestInvalidPageReturnsBadRequest(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_page=abc&_limit=1", "")
+
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", response.Code)
+	}
+}
