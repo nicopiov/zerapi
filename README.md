@@ -43,7 +43,7 @@ go install github.com/nicopiov/zerapi@latest
 Or install a specific version:
 
 ```sh
-go install github.com/nicopiov/zerapi@v0.2.0
+go install github.com/nicopiov/zerapi@v0.3.0
 ```
 
 Then verify the command is available:
@@ -167,6 +167,19 @@ Or let `curl` encode it:
 ```sh
 curl --get "http://localhost:8080/users" \
   --data-urlencode "name=Ada Lovelace"
+```
+
+Use `_like` for case-insensitive substring matching:
+
+```sh
+curl "http://localhost:8080/users?name_like=ada"
+```
+
+Use `_gte` and `_lte` for numeric range filters:
+
+```sh
+curl "http://localhost:8080/users?age_gte=18"
+curl "http://localhost:8080/users?age_lte=65"
 ```
 
 ## Pagination
