@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -59,6 +60,7 @@ func (h *Handler) handleCollection(w http.ResponseWriter, r *http.Request, resou
 			return
 		}
 		records = applyFilters(records, r.URL.Query())
+		applySorting(records, r.URL.Query())
 
 		records, ok = applyPagination(w, records, r.URL.Query())
 		if !ok {
@@ -259,4 +261,29 @@ func applyPagination(w http.ResponseWriter, records []map[string]any, query url.
 	}
 
 	return records[start:end], true
+}
+
+func applySorting(records []map[string]any, query url.Values) {
+	sortValue := query.Get("_sort")
+	if sortValue == "" {
+		return
+	}
+
+	descending := strings.HasPrefix(sortValue, "-")
+	field := strings.TrimPrefix(sortValue, "-")
+
+	if field == "" {
+		return
+	}
+
+	sort.SliceStable(records, func(i, j int) bool {
+		left := fmt.Sprint(records[i][field])
+		right := fmt.Sprint(records[j][field])
+
+		if descending {
+			return left > right
+		}
+
+		return left < right
+	})
 }

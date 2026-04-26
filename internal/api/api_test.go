@@ -310,3 +310,37 @@ func TestInvalidPageReturnsBadRequest(t *testing.T) {
 		t.Fatalf("expected status 400, got %d", response.Code)
 	}
 }
+
+func TestSortResourceAscending(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_sort=name", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada first, got %v", body[0]["name"])
+	}
+}
+
+func TestSortResourceDescending(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_sort=-name", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if body[0]["name"] != "Grace" {
+		t.Fatalf("expected Grace first, got %v", body[0]["name"])
+	}
+}
