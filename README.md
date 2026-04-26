@@ -32,12 +32,18 @@ Top-level arrays infer the resource name from the file name. For example, `users
 
 Top-level objects expose each array property as a resource.
 
-## Install Locally
+## Install
 
-From the repository root:
+Install the latest release:
 
 ```sh
-go install .
+go install github.com/nicopiov/zerapi@latest
+```
+
+Or install a specific version:
+
+```sh
+go install github.com/nicopiov/zerapi@v0.1.0
 ```
 
 Then verify the command is available:
@@ -165,6 +171,12 @@ Run tests:
 go test ./...
 ```
 
+Install from a local checkout:
+
+```sh
+go install .
+```
+
 Run without installing:
 
 ```sh
@@ -183,7 +195,7 @@ go build -o bin/zerapi .
 
 ### Command Not Found
 
-If `zerapi` is not found after `go install .`, make sure Go's bin directory is in your `PATH`.
+If `zerapi` is not found after `go install`, make sure Go's bin directory is in your `PATH`.
 
 For zsh:
 
