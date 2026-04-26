@@ -14,6 +14,11 @@ import (
 )
 
 func serve(args []string) error {
+	if wantsHelp(args) {
+		printServeHelp()
+		return nil
+	}
+
 	flags := flag.NewFlagSet("serve", flag.ContinueOnError)
 
 	port := flags.Int("port", 8080, "port to listen on")
@@ -127,4 +132,27 @@ func modTime(file string) time.Time {
 	}
 
 	return info.ModTime()
+}
+
+func wantsHelp(args []string) bool {
+	for _, arg := range args {
+		if arg == "help" || arg == "--help" || arg == "-h" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func printServeHelp() {
+	fmt.Println(`Zerapi serve
+
+Usage:
+  zerapi serve [flags] <file>
+
+Flags:
+  --host        Host to listen on (default: localhost)
+  --port, -p    Port to listen on (default: 8080)
+  --readonly    Block POST, PUT, PATCH, and DELETE requests
+  --watch       Reload the source file when it changes`)
 }

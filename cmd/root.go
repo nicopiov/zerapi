@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const version = "0.0.1"
+const version = "0.2.0-dev"
 
 func Execute(args []string) error {
 	if len(args) < 1 {
@@ -13,8 +13,8 @@ func Execute(args []string) error {
 	}
 
 	switch args[0] {
-	case "version":
-		fmt.Println(version)
+	case "version", "--version", "-v":
+		fmt.Printf("zerapi %s\n", version)
 		return nil
 	case "help", "-h", "--help":
 		printHelp()
