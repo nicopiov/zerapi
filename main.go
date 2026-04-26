@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/nicopiov/zerapi/internal/api"
 	"github.com/nicopiov/zerapi/internal/loader"
@@ -50,7 +51,8 @@ Commands:
 Server flags:
   	--host,        Host to listen on (default: localhost)
   	--port, -p     Port to listen on (default: 8080)
-	--readonly     Block POST, PUT, PATCH, and DELETE requests`)
+	--readonly     Block POST, PUT, PATCH, and DELETE requests
+	--watch        Reload the source file when it changes`)
 }
 
 func serve(args []string) error {
@@ -59,6 +61,7 @@ func serve(args []string) error {
 	port := flags.Int("port", 8080, "port to listen on")
 	host := flags.String("host", "localhost", "host to listen to")
 	readonly := flags.Bool("readonly", false, "block write requests")
+	watch := flags.Bool("watch", false, "reload the source file when it changes")
 
 	flags.IntVar(port, "p", 8080, "port to listen on")
 
@@ -81,23 +84,31 @@ func serve(args []string) error {
 	url := fmt.Sprintf("http://%s", addr)
 
 	data := store.New(result.Resources)
+	if *watch {
+		go watchFile(file, data)
+	}
+
 	handler := api.WithLogging(
 		api.NewHandler(data, api.Options{Readonly: *readonly}),
 		os.Stdout,
 	)
 
-	printStartup(url, file, result.Resources, *readonly)
+	printStartup(url, file, result.Resources, *readonly, *watch)
 
 	return http.ListenAndServe(addr, handler)
 }
 
-func printStartup(url string, file string, resources []loader.Resource, readonly bool) {
+func printStartup(url string, file string, resources []loader.Resource, readonly bool, watch bool) {
 	fmt.Printf("Zerapi running at %s\n", util.Info(url))
 	fmt.Printf("%s %s\n", util.Success("Loaded"), file)
 
 	if readonly {
 		fmt.Printf("%s readonly\n", util.Warn("Mode:"))
 		fmt.Println(util.Muted("Writes are disabled"))
+	}
+
+	if watch {
+		fmt.Printf("%s enabled\n", util.Info("Watch:"))
 	}
 
 	fmt.Println()
@@ -124,4 +135,38 @@ func printStartup(url string, file string, resources []loader.Resource, readonly
 
 	fmt.Println()
 	fmt.Printf("%s %d records\n", util.Success("Loaded"), totalRecords)
+}
+
+func watchFile(file string, data *store.Store) {
+	lastModTime := modTime(file)
+
+	ticker := time.NewTicker(time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		currentModTime := modTime(file)
+		if currentModTime.IsZero() || !currentModTime.After(lastModTime) {
+			continue
+		}
+
+		lastModTime = currentModTime
+
+		result, err := loader.Load(file)
+		if err != nil {
+			fmt.Printf("%s reload failed: %v\n", util.Warn("Watch:"), err)
+			continue
+		}
+
+		data.Reload(result.Resources)
+		fmt.Printf("%s reloaded %s\n", util.Success("Watch:"), file)
+	}
+}
+
+func modTime(file string) time.Time {
+	info, err := os.Stat(file)
+	if err != nil {
+		return time.Time{}
+	}
+
+	return info.ModTime()
 }

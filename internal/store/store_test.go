@@ -139,3 +139,29 @@ func TestReturnedRecordsAreCopies(t *testing.T) {
 		t.Fatalf("expected internal record to stay Ada, got %v", again["name"])
 	}
 }
+
+func TestReloadReplacesResources(t *testing.T) {
+	store := newTestStore()
+
+	store.Reload([]loader.Resource{
+		{
+			Name: "posts",
+			Records: []map[string]any{
+				{"id": 1, "title": "Hello"},
+			},
+		},
+	})
+
+	if _, ok := store.List("users"); ok {
+		t.Fatal("expected users resource to be removed")
+	}
+
+	posts, ok := store.List("posts")
+	if !ok {
+		t.Fatal("expected posts resource")
+	}
+
+	if len(posts) != 1 {
+		t.Fatalf("expected 1 post, got %d", len(posts))
+	}
+}

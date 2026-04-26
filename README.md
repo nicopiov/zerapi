@@ -72,6 +72,12 @@ Start in readonly mode:
 zerapi serve --readonly examples/users.json
 ```
 
+Reload the file when it changes:
+
+```sh
+zerapi serve --watch examples/users.json
+```
+
 ## REST Routes
 
 For a `users` resource, Zerapi exposes:
@@ -140,6 +146,16 @@ PUT    /users/1
 PATCH  /users/1
 DELETE /users/1
 ```
+
+## Watch Mode
+
+Watch mode reloads the source file while the server keeps running.
+
+```sh
+zerapi serve --watch examples/users.json
+```
+
+When the JSON file changes, Zerapi reloads the in-memory API data. If the new file content is invalid, Zerapi logs a warning and keeps serving the last valid data.
 
 ## Development
 

@@ -20,9 +20,13 @@ type Resource struct {
 }
 
 func New(resources []loader.Resource) *Store {
-	store := &Store{
-		resources: make(map[string]*Resource, len(resources)),
+	return &Store{
+		resources: buildResources(resources),
 	}
+}
+
+func buildResources(resources []loader.Resource) map[string]*Resource {
+	built := make(map[string]*Resource, len(resources))
 
 	for _, resource := range resources {
 		records := copyRecords(resource.Records)
@@ -35,13 +39,21 @@ func New(resources []loader.Resource) *Store {
 			}
 		}
 
-		store.resources[resource.Name] = &Resource{
+		built[resource.Name] = &Resource{
 			Name:    resource.Name,
 			Records: records,
 			nextID:  nextID,
 		}
 	}
-	return store
+
+	return built
+}
+
+func (s *Store) Reload(resources []loader.Resource) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.resources = buildResources(resources)
 }
 
 func (s *Store) List(resource string) ([]map[string]any, bool) {
