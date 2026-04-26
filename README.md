@@ -129,6 +129,61 @@ curl -X PATCH http://localhost:8080/users/1 \
 curl -X DELETE http://localhost:8080/users/1
 ```
 
+## Filtering
+
+Collection routes support exact-match query filters:
+
+```sh
+curl "http://localhost:8080/users?email=ada@example.com"
+```
+
+Multiple filters are combined with AND behavior:
+
+```sh
+curl "http://localhost:8080/users?id=1&email=ada@example.com"
+```
+
+For values with spaces or other special characters, URL-encode the value:
+
+```sh
+curl "http://localhost:8080/users?name=Ada%20Lovelace"
+```
+
+Or let `curl` encode it:
+
+```sh
+curl --get "http://localhost:8080/users" \
+  --data-urlencode "name=Ada Lovelace"
+```
+
+## Pagination
+
+Use `_limit` to cap collection results:
+
+```sh
+curl "http://localhost:8080/users?_limit=1"
+```
+
+Use `_page` with `_limit` to page through results:
+
+```sh
+curl "http://localhost:8080/users?_page=2&_limit=1"
+```
+
+## Sorting
+
+Use `_sort` to order collection results by a field:
+
+```sh
+curl "http://localhost:8080/users?_sort=name"
+```
+
+Prefix the field with `-` for descending order:
+
+```sh
+curl "http://localhost:8080/users?_sort=-name"
+```
+
 ## Readonly Mode
 
 Readonly mode keeps loaded data stable by allowing reads and blocking writes.

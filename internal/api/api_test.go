@@ -197,3 +197,150 @@ func TestReadonlyBlocksReplace(t *testing.T) {
 		t.Fatalf("expected status 403, got %d", response.Code)
 	}
 }
+
+func TestFilterResourceByField(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name=Ada", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
+
+func TestFilterResourceNoMatches(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?name=Missing", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 0 {
+		t.Fatalf("expected 0 records, got %d", len(body))
+	}
+}
+
+func TestFilterResourceByMultipleFields(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?id=1&name=Ada", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
+
+func TestLimitResource(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+}
+
+func TestPageResource(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_page=2&_limit=1", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if len(body) != 1 {
+		t.Fatalf("expected 1 record, got %d", len(body))
+	}
+
+	if body[0]["name"] != "Grace" {
+		t.Fatalf("expected Grace, got %v", body[0]["name"])
+	}
+}
+
+func TestInvalidLimitReturnsBadRequest(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_limit=abc", "")
+
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", response.Code)
+	}
+}
+
+func TestInvalidPageReturnsBadRequest(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_page=abc&_limit=1", "")
+
+	if response.Code != http.StatusBadRequest {
+		t.Fatalf("expected status 400, got %d", response.Code)
+	}
+}
+
+func TestSortResourceAscending(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_sort=name", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if body[0]["name"] != "Ada" {
+		t.Fatalf("expected Ada first, got %v", body[0]["name"])
+	}
+}
+
+func TestSortResourceDescending(t *testing.T) {
+	response := performRequest(newTestHandler(), http.MethodGet, "/users?_sort=-name", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	var body []map[string]any
+	if err := json.NewDecoder(response.Body).Decode(&body); err != nil {
+		t.Fatalf("decode response body: %v", err)
+	}
+
+	if body[0]["name"] != "Grace" {
+		t.Fatalf("expected Grace first, got %v", body[0]["name"])
+	}
+}
