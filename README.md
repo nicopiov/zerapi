@@ -25,12 +25,8 @@ Top-level arrays infer the resource name from the file name. For example, `users
 
 ```json
 {
-  "users": [
-    { "id": 1, "name": "Ada Lovelace" }
-  ],
-  "posts": [
-    { "id": 1, "title": "Hello" }
-  ]
+  "users": [{ "id": 1, "name": "Ada Lovelace" }],
+  "posts": [{ "id": 1, "title": "Hello" }]
 }
 ```
 
@@ -185,7 +181,3 @@ Then try:
 ```sh
 zerapi version
 ```
-
-## Roadmap
-
-See [ROADMAP.md](ROADMAP.md) for milestones, decisions, and project memory.
