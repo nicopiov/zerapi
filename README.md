@@ -43,7 +43,7 @@ go install github.com/nicopiov/zerapi@latest
 Or install a specific version:
 
 ```sh
-go install github.com/nicopiov/zerapi@v0.3.0
+go install github.com/nicopiov/zerapi@v0.4.0
 ```
 
 Then verify the command is available:
@@ -95,6 +95,12 @@ Enable CORS for browser-based frontend apps:
 
 ```sh
 zerapi serve --cors examples/users.json
+```
+
+Add a delay to the requests:
+
+```sh
+zerapi serve --delay 500ms examples/users.json
 ```
 
 Show serve help:
@@ -265,6 +271,16 @@ zerapi serve --cors examples/users.json
 ```
 
 When enabled, Zerapi responds to preflight requests and sets CORS headers for local frontend development.
+
+## Response Delay
+
+Use `--delay` to simulate slow API responses and test frontend loading states.
+
+```sh
+zerapi serve --delay 500ms examples/users.json
+```
+
+Delay values use Go duration syntax, such as `250ms`, `1s`, or `2s`.
 
 ## Development
 

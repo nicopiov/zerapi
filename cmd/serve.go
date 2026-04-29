@@ -26,6 +26,7 @@ func serve(args []string) error {
 	readonly := flags.Bool("readonly", false, "block write requests")
 	watch := flags.Bool("watch", false, "reload the source file when it changes")
 	cors := flags.Bool("cors", false, "enable CORS headers for browser clients")
+	delayValue := flags.String("delay", "", "delay every response, for example 500ms or 2s")
 
 	flags.IntVar(port, "p", 8080, "port to listen on")
 
@@ -52,18 +53,30 @@ func serve(args []string) error {
 		go watchFile(file, data)
 	}
 
+	var delay time.Duration
+	if *delayValue != "" {
+		parsedDelay, err := time.ParseDuration(*delayValue)
+		if err != nil || parsedDelay < 0 {
+			return fmt.Errorf("invalid delay %q: use a duration like 500ms or 2s", *delayValue)
+		}
+		delay = parsedDelay
+	}
+
 	handler := api.NewHandler(data, api.Options{Readonly: *readonly})
+	if delay > 0 {
+		handler = api.WithDelay(handler, delay)
+	}
 	if *cors {
 		handler = api.WithCORS(handler)
 	}
 	handler = api.WithLogging(handler, os.Stdout)
 
-	printStartup(url, file, result.Resources, *readonly, *watch, *cors)
+	printStartup(url, file, result.Resources, *readonly, *watch, *cors, delay)
 
 	return http.ListenAndServe(addr, handler)
 }
 
-func printStartup(url string, file string, resources []loader.Resource, readonly bool, watch bool, cors bool) {
+func printStartup(url string, file string, resources []loader.Resource, readonly bool, watch bool, cors bool, delay time.Duration) {
 	fmt.Printf("Zerapi running at %s\n", util.Info(url))
 	fmt.Printf("%s %s\n", util.Success("Loaded"), file)
 
@@ -78,6 +91,10 @@ func printStartup(url string, file string, resources []loader.Resource, readonly
 
 	if cors {
 		fmt.Printf("%s enabled\n", util.Info("CORS:"))
+	}
+
+	if delay > 0 {
+		fmt.Printf("%s %s\n", util.Info("Delay:"), delay)
 	}
 
 	fmt.Println()
@@ -161,5 +178,6 @@ Flags:
   --port, -p    Port to listen on (default: 8080)
   --readonly    Block POST, PUT, PATCH, and DELETE requests
   --watch       Reload the source file when it changes
-  --cors        Enable CORS headers for browser clients`)
+  --cors        Enable CORS headers for browser clients
+  --delay       Delay every response, for example 500ms or 2s`)
 }

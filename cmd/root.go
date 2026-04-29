@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const version = "v0.3.0"
+const version = "v0.4.0"
 
 func Execute(args []string) error {
 	if len(args) < 1 {
@@ -42,5 +42,6 @@ Server flags:
   --port, -p     Port to listen on (default: 8080)
   --readonly     Block POST, PUT, PATCH, and DELETE requests
   --watch        Reload the source file when it changes
-  --cors         Enable CORS headers for browser clients`)
+  --cors         Enable CORS headers for browser clients
+  --delay        Delay every response, for example 500ms or 2s`)
 }

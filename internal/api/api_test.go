@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/nicopiov/zerapi/internal/loader"
 	"github.com/nicopiov/zerapi/internal/store"
@@ -465,5 +466,20 @@ func TestFilterResourceLessThanOrEqual(t *testing.T) {
 
 	if body[0]["name"] != "Ada" {
 		t.Fatalf("expected Ada, got %v", body[0]["name"])
+	}
+}
+
+func TestWithDelayWaitsBeforeServing(t *testing.T) {
+	handler := WithDelay(newTestHandler(), 10*time.Millisecond)
+
+	start := time.Now()
+	response := performRequest(handler, http.MethodGet, "/users", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	if time.Since(start) < 10*time.Millisecond {
+		t.Fatal("expected delayed response")
 	}
 }
