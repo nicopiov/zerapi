@@ -53,7 +53,7 @@ go install github.com/nicopiov/zerapi@latest
 Or install a specific version:
 
 ```sh
-go install github.com/nicopiov/zerapi@v0.4.0
+go install github.com/nicopiov/zerapi@v0.5.0
 ```
 
 Then verify the command is available:
