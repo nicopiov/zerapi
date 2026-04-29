@@ -148,6 +148,42 @@ func TestWithLoggingWritesRequestLog(t *testing.T) {
 	}
 }
 
+func TestWithCORSWritesHeaders(t *testing.T) {
+	handler := WithCORS(newTestHandler())
+
+	response := performRequest(handler, http.MethodGet, "/users", "")
+
+	if response.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d", response.Code)
+	}
+
+	if response.Header().Get("Access-Control-Allow-Origin") != "*" {
+		t.Fatalf("expected Access-Control-Allow-Origin *, got %q", response.Header().Get("Access-Control-Allow-Origin"))
+	}
+
+	if response.Header().Get("Access-Control-Expose-Headers") != "X-Total-Count" {
+		t.Fatalf("expected X-Total-Count to be exposed, got %q", response.Header().Get("Access-Control-Expose-Headers"))
+	}
+}
+
+func TestWithCORSHandlesPreflight(t *testing.T) {
+	handler := WithCORS(newTestHandler())
+
+	response := performRequest(handler, http.MethodOptions, "/users", "")
+
+	if response.Code != http.StatusNoContent {
+		t.Fatalf("expected status 204, got %d", response.Code)
+	}
+
+	if response.Header().Get("Access-Control-Allow-Methods") != "GET, POST, PUT, PATCH, DELETE, OPTIONS" {
+		t.Fatalf("expected CORS methods header, got %q", response.Header().Get("Access-Control-Allow-Methods"))
+	}
+
+	if response.Header().Get("Access-Control-Allow-Headers") != "Content-Type" {
+		t.Fatalf("expected CORS headers header, got %q", response.Header().Get("Access-Control-Allow-Headers"))
+	}
+}
+
 func TestReadonlyAllowsReads(t *testing.T) {
 	handler := newTestHandlerWithOptions(Options{Readonly: true})
 

@@ -91,6 +91,12 @@ Reload the file when it changes:
 zerapi serve --watch examples/users.json
 ```
 
+Enable CORS for browser-based frontend apps:
+
+```sh
+zerapi serve --cors examples/users.json
+```
+
 Show serve help:
 
 ```sh
@@ -249,6 +255,16 @@ zerapi serve --watch examples/users.json
 ```
 
 When the JSON file changes, Zerapi reloads the in-memory API data. If the new file content is invalid, Zerapi logs a warning and keeps serving the last valid data.
+
+## CORS
+
+Use `--cors` when calling Zerapi from a browser app running on another local origin, such as `localhost:5173` or `localhost:3000`.
+
+```sh
+zerapi serve --cors examples/users.json
+```
+
+When enabled, Zerapi responds to preflight requests and sets CORS headers for local frontend development.
 
 ## Development
 

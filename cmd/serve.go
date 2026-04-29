@@ -25,6 +25,7 @@ func serve(args []string) error {
 	host := flags.String("host", "localhost", "host to listen to")
 	readonly := flags.Bool("readonly", false, "block write requests")
 	watch := flags.Bool("watch", false, "reload the source file when it changes")
+	cors := flags.Bool("cors", false, "enable CORS headers for browser clients")
 
 	flags.IntVar(port, "p", 8080, "port to listen on")
 
@@ -51,17 +52,18 @@ func serve(args []string) error {
 		go watchFile(file, data)
 	}
 
-	handler := api.WithLogging(
-		api.NewHandler(data, api.Options{Readonly: *readonly}),
-		os.Stdout,
-	)
+	handler := api.NewHandler(data, api.Options{Readonly: *readonly})
+	if *cors {
+		handler = api.WithCORS(handler)
+	}
+	handler = api.WithLogging(handler, os.Stdout)
 
-	printStartup(url, file, result.Resources, *readonly, *watch)
+	printStartup(url, file, result.Resources, *readonly, *watch, *cors)
 
 	return http.ListenAndServe(addr, handler)
 }
 
-func printStartup(url string, file string, resources []loader.Resource, readonly bool, watch bool) {
+func printStartup(url string, file string, resources []loader.Resource, readonly bool, watch bool, cors bool) {
 	fmt.Printf("Zerapi running at %s\n", util.Info(url))
 	fmt.Printf("%s %s\n", util.Success("Loaded"), file)
 
@@ -72,6 +74,10 @@ func printStartup(url string, file string, resources []loader.Resource, readonly
 
 	if watch {
 		fmt.Printf("%s enabled\n", util.Info("Watch:"))
+	}
+
+	if cors {
+		fmt.Printf("%s enabled\n", util.Info("CORS:"))
 	}
 
 	fmt.Println()
@@ -154,5 +160,6 @@ Flags:
   --host        Host to listen on (default: localhost)
   --port, -p    Port to listen on (default: 8080)
   --readonly    Block POST, PUT, PATCH, and DELETE requests
-  --watch       Reload the source file when it changes`)
+  --watch       Reload the source file when it changes
+  --cors        Enable CORS headers for browser clients`)
 }

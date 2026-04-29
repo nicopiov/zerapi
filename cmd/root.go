@@ -41,5 +41,6 @@ Server flags:
   --host         Host to listen on (default: localhost)
   --port, -p     Port to listen on (default: 8080)
   --readonly     Block POST, PUT, PATCH, and DELETE requests
-  --watch        Reload the source file when it changes`)
+  --watch        Reload the source file when it changes
+  --cors         Enable CORS headers for browser clients`)
 }
