@@ -2,7 +2,7 @@
 
 Instant APIs. Zero setup.
 
-Zerapi is a small CLI tool that turns JSON files into temporary local REST APIs for frontend development, prototyping, demos, and tests.
+Zerapi is a small CLI tool that turns JSON or YAML files into temporary local REST APIs for frontend development, prototyping, demos, and tests.
 
 ```sh
 zerapi serve examples/users.json
@@ -10,9 +10,9 @@ zerapi serve examples/users.json
 
 ## What It Does
 
-Zerapi loads a JSON file, infers API resources, stores the data in memory, and exposes CRUD routes locally.
+Zerapi loads a JSON or YAML file, infers API resources, stores the data in memory, and exposes CRUD routes locally.
 
-Supported JSON shapes:
+Supported data shapes:
 
 ```json
 [
@@ -31,6 +31,16 @@ Top-level arrays infer the resource name from the file name. For example, `users
 ```
 
 Top-level objects expose each array property as a resource.
+
+The same shapes are supported in YAML:
+
+```yaml
+users:
+  - id: 1
+    name: Ada Lovelace
+  - id: 2
+    name: Grace Hopper
+```
 
 ## Install
 
@@ -65,6 +75,12 @@ Start an API from the example data:
 
 ```sh
 zerapi serve examples/users.json
+```
+
+YAML fixtures work too:
+
+```sh
+zerapi serve examples/users.yaml
 ```
 
 Use a different port:

@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
 type Resource struct {
@@ -23,9 +25,19 @@ func Load(path string) (*Result, error) {
 		return nil, fmt.Errorf("read file: %w", err)
 	}
 
+	extension := strings.ToLower(filepath.Ext(path))
 	var value any
-	if err := json.Unmarshal(data, &value); err != nil {
-		return nil, fmt.Errorf("parse json: %w", err)
+	switch extension {
+	case ".json":
+		if err := json.Unmarshal(data, &value); err != nil {
+			return nil, fmt.Errorf("parse json: %w", err)
+		}
+	case ".yaml", ".yml":
+		if err := yaml.Unmarshal(data, &value); err != nil {
+			return nil, fmt.Errorf("parse yaml: %w", err)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported file type: %s", extension)
 	}
 
 	switch typed := value.(type) {
@@ -66,7 +78,7 @@ func Load(path string) (*Result, error) {
 			Resources: resources,
 		}, nil
 	default:
-		return nil, fmt.Errorf("json root must be an array or object")
+		return nil, fmt.Errorf("file root must be an array or object")
 	}
 }
 
