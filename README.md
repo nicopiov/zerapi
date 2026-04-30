@@ -53,7 +53,7 @@ go install github.com/nicopiov/zerapi@latest
 Or install a specific version:
 
 ```sh
-go install github.com/nicopiov/zerapi@v0.5.0
+go install github.com/nicopiov/zerapi@v0.6.0
 ```
 
 Then verify the command is available:
@@ -282,7 +282,7 @@ Watch mode reloads the source file while the server keeps running.
 zerapi serve --watch examples/users.json
 ```
 
-When the JSON file changes, Zerapi reloads the in-memory API data. If the new file content is invalid, Zerapi logs a warning and keeps serving the last valid data.
+When the source file changes, Zerapi reloads the in-memory API data. If the new file content is invalid, Zerapi logs a warning and keeps serving the last valid data.
 
 ## CORS
 
