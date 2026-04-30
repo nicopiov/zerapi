@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const version = "v0.6.0"
+const version = "v0.7.0"
 
 func Execute(args []string) error {
 	if len(args) < 1 {

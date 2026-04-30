@@ -364,6 +364,100 @@ Configuration precedence:
 CLI flags > environment variables > config file > defaults
 ```
 
+## Docker
+
+Build the image locally:
+
+```sh
+docker build -t zerapi:dev .
+```
+
+The container uses `/data` as its working directory. By default, it serves `/data/data.json` on port `8080`.
+
+Run with a mounted data file:
+
+```sh
+docker run --rm -it -p 8080:8080 \
+  -v "/path/to/data.json:/data/data.json:ro" \
+  zerapi:dev
+```
+
+The `-it` flags attach a TTY, which keeps colored Zerapi output enabled in Docker logs.
+
+If your mounted file has a different name or format, override the command:
+
+```sh
+docker run --rm -it -p 8080:8080 \
+  -v "/path/to/users.yaml:/data/users.yaml:ro" \
+  zerapi:dev serve --host 0.0.0.0 /data/users.yaml
+```
+
+Use environment variables:
+
+```sh
+docker run --rm -it -p 9090:9090 \
+  -e ZERAPI_PORT=9090 \
+  -v "/path/to/data.json:/data/data.json:ro" \
+  zerapi:dev
+```
+
+Use a config file explicitly:
+
+```sh
+docker run --rm -it -p 8080:8080 \
+  -v "/path/to/data.json:/data/data.json:ro" \
+  -v "/path/to/zerapi.yaml:/data/zerapi.yaml:ro" \
+  zerapi:dev serve --config /data/zerapi.yaml /data/data.json
+```
+
+Config files can be JSON or YAML. Zerapi does not auto-load `/data/zerapi.yaml` or `/data/zerapi.json`; pass `--config` when you want config-file behavior. This keeps Docker usage consistent with local CLI usage.
+
+### Docker Compose
+
+Use Zerapi as a service in a local Compose stack:
+
+```yaml
+services:
+  zerapi:
+    image: zerapi:dev
+    tty: true
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data/users.json:/data/data.json:ro
+```
+
+With environment variables:
+
+```yaml
+services:
+  zerapi:
+    image: zerapi:dev
+    tty: true
+    ports:
+      - "9090:9090"
+    environment:
+      ZERAPI_PORT: "9090"
+      ZERAPI_CORS: "true"
+    volumes:
+      - ./data/users.json:/data/data.json:ro
+```
+
+With a config file:
+
+```yaml
+services:
+  zerapi:
+    image: zerapi:dev
+    tty: true
+    ports:
+      - "8080:8080"
+    command: ["serve", "--config", "/data/zerapi.yaml", "/data/data.json"]
+    volumes:
+      - ./data/users.json:/data/data.json:ro
+      - ./zerapi.yaml:/data/zerapi.yaml:ro
+```
+
 ## Development
 
 Run tests:
