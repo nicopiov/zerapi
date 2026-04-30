@@ -392,6 +392,17 @@ For top-level object files, resource names come from the object keys, so `/data/
 }
 ```
 
+Multiple resources work too:
+
+```json
+{
+  "users": [{ "id": 1, "name": "Ada Lovelace" }],
+  "documents": [{ "id": 1, "text": "Lorem Ipsum" }]
+}
+```
+
+This exposes `/users` and `/documents`.
+
 For top-level array files, the resource name comes from the file name. If you mount an array file as `/data/data.json`, the route will be `/data`. To get `/users`, mount the file as `/data/users.json` and override the command:
 
 ```sh
