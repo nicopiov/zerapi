@@ -119,6 +119,12 @@ Add a delay to the requests:
 zerapi serve --delay 500ms examples/users.json
 ```
 
+Load serve options from a config file:
+
+```sh
+zerapi serve --config examples/zerapi.yaml examples/users.json
+```
+
 Show serve help:
 
 ```sh
@@ -318,6 +324,44 @@ ZERAPI_READONLY
 ZERAPI_WATCH
 ZERAPI_CORS
 ZERAPI_DELAY
+```
+
+## Config Files
+
+Serve options can be loaded from JSON or YAML config files.
+
+```sh
+zerapi serve --config examples/zerapi.yaml examples/users.json
+```
+
+Example `zerapi.yaml`:
+
+```yaml
+host: 0.0.0.0
+port: 8080
+readonly: true
+watch: true
+cors: true
+delay: 250ms
+```
+
+Example `zerapi.json`:
+
+```json
+{
+  "host": "0.0.0.0",
+  "port": 8080,
+  "readonly": true,
+  "watch": true,
+  "cors": true,
+  "delay": "250ms"
+}
+```
+
+Configuration precedence:
+
+```text
+CLI flags > environment variables > config file > defaults
 ```
 
 ## Development

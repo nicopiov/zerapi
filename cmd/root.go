@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-const version = "v0.5.0"
+const version = "v0.6.0"
 
 func Execute(args []string) error {
 	if len(args) < 1 {
@@ -43,5 +43,6 @@ Server flags:
   --readonly     Block POST, PUT, PATCH, and DELETE requests
   --watch        Reload the source file when it changes
   --cors         Enable CORS headers for browser clients
-  --delay        Delay every response, for example 500ms or 2s`)
+  --delay        Delay every response, for example 500ms or 2s
+  --config       Load serve options from a JSON or YAML config file`)
 }
