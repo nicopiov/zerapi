@@ -384,7 +384,23 @@ docker run --rm -it -p 8080:8080 \
 
 The `-it` flags attach a TTY, which keeps colored Zerapi output enabled in Docker logs.
 
-If your mounted file has a different name or format, override the command:
+For top-level object files, resource names come from the object keys, so `/data/data.json` works well:
+
+```json
+{
+  "users": [{ "id": 1, "name": "Ada Lovelace" }]
+}
+```
+
+For top-level array files, the resource name comes from the file name. If you mount an array file as `/data/data.json`, the route will be `/data`. To get `/users`, mount the file as `/data/users.json` and override the command:
+
+```sh
+docker run --rm -it -p 8080:8080 \
+  -v "/path/to/users.json:/data/users.json:ro" \
+  zerapi:dev serve --host 0.0.0.0 /data/users.json
+```
+
+Use the same pattern for YAML files or any custom filename:
 
 ```sh
 docker run --rm -it -p 8080:8080 \
@@ -424,7 +440,21 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./data/users.json:/data/data.json:ro
+      - ./data/data.json:/data/data.json:ro
+```
+
+For a top-level array file named `users.json`, mount it with that name and set the command explicitly:
+
+```yaml
+services:
+  zerapi:
+    image: zerapi:dev
+    tty: true
+    ports:
+      - "8080:8080"
+    command: ["serve", "--host", "0.0.0.0", "/data/users.json"]
+    volumes:
+      - ./data/users.json:/data/users.json:ro
 ```
 
 With environment variables:
@@ -440,7 +470,7 @@ services:
       ZERAPI_PORT: "9090"
       ZERAPI_CORS: "true"
     volumes:
-      - ./data/users.json:/data/data.json:ro
+      - ./data/data.json:/data/data.json:ro
 ```
 
 With a config file:
@@ -454,7 +484,7 @@ services:
       - "8080:8080"
     command: ["serve", "--config", "/data/zerapi.yaml", "/data/data.json"]
     volumes:
-      - ./data/users.json:/data/data.json:ro
+      - ./data/data.json:/data/data.json:ro
       - ./zerapi.yaml:/data/zerapi.yaml:ro
 ```
 
