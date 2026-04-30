@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/nicopiov/zerapi/internal/api"
@@ -19,16 +20,34 @@ func serve(args []string) error {
 		return nil
 	}
 
+	defaultPort, err := envInt("ZERAPI_PORT", 8080)
+	if err != nil {
+		return err
+	}
+	defaultReadonly, err := envBool("ZERAPI_READONLY", false)
+	if err != nil {
+		return err
+	}
+	defaultWatch, err := envBool("ZERAPI_WATCH", false)
+	if err != nil {
+		return err
+	}
+	defaultCORS, err := envBool("ZERAPI_CORS", false)
+	if err != nil {
+		return err
+	}
+	defaultDelay := envString("ZERAPI_DELAY", "")
+
 	flags := flag.NewFlagSet("serve", flag.ContinueOnError)
 
-	port := flags.Int("port", 8080, "port to listen on")
-	host := flags.String("host", "localhost", "host to listen to")
-	readonly := flags.Bool("readonly", false, "block write requests")
-	watch := flags.Bool("watch", false, "reload the source file when it changes")
-	cors := flags.Bool("cors", false, "enable CORS headers for browser clients")
-	delayValue := flags.String("delay", "", "delay every response, for example 500ms or 2s")
+	port := flags.Int("port", defaultPort, "port to listen on")
+	host := flags.String("host", envString("ZERAPI_HOST", "localhost"), "host to listen to")
+	readonly := flags.Bool("readonly", defaultReadonly, "block write requests")
+	watch := flags.Bool("watch", defaultWatch, "reload the source file when it changes")
+	cors := flags.Bool("cors", defaultCORS, "enable CORS headers for browser clients")
+	delayValue := flags.String("delay", defaultDelay, "delay every response, for example 500ms or 2s")
 
-	flags.IntVar(port, "p", 8080, "port to listen on")
+	flags.IntVar(port, "p", defaultPort, "port to listen on")
 
 	if err := flags.Parse(args); err != nil {
 		return err
@@ -180,4 +199,38 @@ Flags:
   --watch       Reload the source file when it changes
   --cors        Enable CORS headers for browser clients
   --delay       Delay every response, for example 500ms or 2s`)
+}
+
+func envString(name string, fallback string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback
+	}
+	return value
+}
+
+func envBool(name string, fallback bool) (bool, error) {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback, nil
+	}
+
+	parsed, err := strconv.ParseBool(value)
+	if err != nil {
+		return false, fmt.Errorf("%s must be a boolean", name)
+	}
+	return parsed, nil
+}
+
+func envInt(name string, fallback int) (int, error) {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback, nil
+	}
+
+	parsed, err := strconv.Atoi(value)
+	if err != nil {
+		return 0, fmt.Errorf("%s must be an integer", name)
+	}
+	return parsed, nil
 }

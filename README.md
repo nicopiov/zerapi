@@ -298,6 +298,28 @@ zerapi serve --delay 500ms examples/users.json
 
 Delay values use Go duration syntax, such as `250ms`, `1s`, or `2s`.
 
+## Environment Variables
+
+Serve options can also be configured with environment variables. CLI flags override environment variables.
+
+```sh
+ZERAPI_HOST=0.0.0.0 \
+ZERAPI_PORT=8080 \
+ZERAPI_CORS=true \
+zerapi serve examples/users.json
+```
+
+Supported variables:
+
+```text
+ZERAPI_HOST
+ZERAPI_PORT
+ZERAPI_READONLY
+ZERAPI_WATCH
+ZERAPI_CORS
+ZERAPI_DELAY
+```
+
 ## Development
 
 Run tests:
